@@ -48,6 +48,16 @@
             </div>
         </div>
     </div>
+    <!-- Add highlight.js for syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.area-description pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        });
+    </script>
 @elseif($type == 'assignment')
     <div class="p-5 md:p-8 xl:p-10 relative overflow-hidden aspect-[16/7] bg-primary-50 rounded-xl">
         <div class="size-full flex-center">
