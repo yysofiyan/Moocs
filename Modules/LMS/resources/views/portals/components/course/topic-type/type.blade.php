@@ -131,7 +131,7 @@
         </div>
         <div class="mt-4">
             <label class="form-label">{{ translate('Instruction') }} <span class="text-danger">*</span></label>
-            <textarea name="description" class="summernote">{!! clean($topic?->topicable?->description ?? '') !!}</textarea>
+            <textarea name="description" class="summernote">{!! $topic?->topicable?->description ?? '' !!}</textarea>
             <span class="text-danger error-text description_err"></span>
         </div>
 
@@ -305,7 +305,7 @@
 
 
 <script src="{{ asset('lms/assets/js/vendor/summernote.min.js') }}"></script>
-<script src="{{ asset('lms/assets/js/vendor/select2.min.js') }} "></script>
+<script src="{{ asset('lms/assets/js/vendor/select2.min.js') }}"></script>
 
 <script>
     $(function() {
@@ -325,28 +325,26 @@
                 ["color", ["color"]],
                 ["para", ["paragraph"]],
                 ["height", ["height"]],
-                ["insert", ["hr", "link"]],
+                ["insert", ["hr"]],
+                ["link", ["link"]],
+                ["table", ["table"]],
+                ["view", ["codeview", "help"]],
+                ["insert", ["codeblock"]], // <-- Add this line for code block button
+                
             ],
             styleTags: ["p", "h1", "h2", "h3", "h4", "h5", "h6"],
             lineHeights: ["0.5", "1.0", "1.1", "1.2", "1.3", "1.4"],
             fontSizes: [
-                "8",
-                "9",
-                "10",
-                "11",
-                "12",
-                "13",
-                "14",
-                "15",
-                "16",
-                "18",
-                "24",
-                "36",
-                "48",
-                "64",
-                "82",
-                "150",
+                "8", "9", "10", "11", "12", "13", "14", "15", "16", "18", "24", "36", "48", "64", "82", "150",
             ],
+            codeviewFilter: false,
+            codeviewIframeFilter: true,
+            callbacks: {
+                onDialogShown: function() {
+                    // Remove Summernote modal backdrop when dialog is shown
+                    $('.note-modal-backdrop').remove();
+                }
+            }
         });
 
         $(document).on('change', '.source-type-select', function() {
@@ -380,4 +378,56 @@
             }
         })
     })
+</script>
+
+<style>
+/* Fix Summernote dialog/popup being covered by overlays/backdrops */
+.note-dialog, .note-popover, .note-modal {
+    z-index: 99999 !important;
+}
+</style>
+
+<!-- Add code block button to Summernote toolbar -->
+<script>
+$.extend($.summernote.plugins, {
+    'codeblock': function (context) {
+        var ui = $.summernote.ui;
+        context.memo('button.codeblock', function () {
+            return ui.button({
+                contents: '<i class="note-icon-code"/>&nbsp;Code',
+                tooltip: 'Insert Code Block',
+                click: function () {
+                    // Prompt user for language
+                    var lang = prompt('Enter code language (e.g., json, php, javascript, html, css, bash, etc.):', 'json');
+                    if (!lang) lang = 'plaintext';
+                    // Prompt user for code
+                    var code = prompt('Paste your code here:', '{\n    "preset": "laravel",\n    "rules": {\n        "simplified_null_return": true,\n        "array_indentation": false,\n        "new_with_parentheses": {\n            "anonymous_class": true,\n            "named_class": true\n        }\n    }\n}');
+                    if (code !== null) {
+                        // Escape HTML special characters
+                        code = code.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                        context.invoke('editor.pasteHTML', `<pre><code class="language-${lang}">${code}</code></pre>`);
+                        // Highlight after insert
+                        setTimeout(function() {
+                            $('pre code').each(function(i, block) {
+                                hljs.highlightElement(block);
+                            });
+                        }, 100);
+                    }
+                }
+            }).render();
+        });
+    }
+});
+</script>
+
+<!-- Add highlight.js for syntax highlighting -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+    // Highlight code blocks after Summernote content is loaded or changed
+    $(document).on('summernote.change', function() {
+        $('pre code').each(function(i, block) {
+            hljs.highlightElement(block);
+        });
+    });
 </script>
